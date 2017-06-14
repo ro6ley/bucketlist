@@ -1,5 +1,5 @@
 #!./bl-env/bin/python
-import os
+
 
 class Config(object):
     """Parent configuration class"""
@@ -8,9 +8,11 @@ class Config(object):
     SECRET = ''
     SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/flask_api'
 
+
 class DevelopmentConfig(Config):
     """Config for development"""
     DEBUG = True
+
 
 class TestingConfig(Config):
     """Config for testing purposes"""
@@ -18,9 +20,11 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/test_db'
     DEBUG = True
 
+
 class StagingConfig(Config):
     """Config for staging"""
     DEBUG = True
+
 
 class ProductionConfig(Config):
     """Config for Production"""
