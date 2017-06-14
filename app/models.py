@@ -12,7 +12,7 @@ class BucketList(db.Model):
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(),
                               onupdate=db.func.current_timestamp())
 
-    def __init__(self):
+    def __init__(self, name):
         self.name = name
 
     def save(self):
