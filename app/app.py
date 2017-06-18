@@ -53,7 +53,8 @@ def create_app(config_name):
                         return make_response(response), 201
 
                 elif request.method == "GET":
-                    bucketlists = BucketList.query.filter_by(created_by=user_id)
+                    bucketlists = BucketList.query.filter_by(
+                        created_by=user_id)
                     results = []
 
                     for bucketlist in bucketlists:
@@ -84,7 +85,8 @@ def create_app(config_name):
             }
             return make_response(jsonify(response)), 403
 
-    @app.route("/api/v1/bucketlists/<int:id>/", methods=["GET", "PUT", "DELETE"])
+    @app.route("/api/v1/bucketlists/<int:id>/",
+               methods=["GET", "PUT", "DELETE"])
     def bucketlist_manipulation(id, **kwargs):
         # Get access token from header
         auth_header = request.headers.get("Authorization")
@@ -233,7 +235,8 @@ def create_app(config_name):
             }
             return make_response(jsonify(response)), 403
 
-    @app.route("/api/v1/bucketlists/<int:id>/items/<int:item_id>/", methods=["GET", "PUT", "DELETE"])
+    @app.route("/api/v1/bucketlists/<int:id>/items/<int:item_id>/",
+               methods=["GET", "PUT", "DELETE"])
     def items_manipulation(id, item_id, **kwargs):
         # Get access token from header
         auth_header = request.headers.get("Authorization")
@@ -245,7 +248,8 @@ def create_app(config_name):
             if not isinstance(user_id, str):
                 # The user is authenticated, (the user_id returned is not an
                 # error string), handle the request
-                item = Item.query.filter_by(bucketlist_id=id).filter_by(id=item_id).first()
+                item = Item.query.filter_by(bucketlist_id=id).filter_by(
+                    id=item_id).first()
                 if not item:
                     abort(404)
 
