@@ -1,7 +1,7 @@
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
-from app import db, create_app
-from app import models
+from app.app import db, create_app
+from app.models import BucketList, Item, User
 
 
 app = create_app(config_name="development")
@@ -12,3 +12,4 @@ manager.add_command("db", MigrateCommand)
 
 if __name__ == "__main__":
     manager.run()
+    db.create_all()
