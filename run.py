@@ -1,9 +1,13 @@
 #!./bl-env/bin/python
 
-from app import create_app
+import os
+
+# from app.views import create_app
+from app.app import create_app
 
 config_name = "development"
-app = create_app(config_name)
+# config_name = os.getenv('APP_SETTINGS')
+app = create_app("development")
 
 if __name__ == "__main__":
     app.run()
