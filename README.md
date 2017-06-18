@@ -26,16 +26,16 @@ $ sudo apt install python
 Clone the repo:
 HTTPS
 ```
-$ git clone https://github.com/NaiRobley/
+$ git clone https://github.com/NaiRobley/bucketlist.git
 ```
 SSH
 ```
-$ git clone git@github.com:NaiRobley/
+$ git clone git@github.com:NaiRobley/bucketlist.git
 ```
 
 Change Directory into the project folder
 ```
-$ cd
+$ cd bucketlist
 ```
 
 Create a virtual environment with Python 3.5
