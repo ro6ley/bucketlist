@@ -30,7 +30,8 @@ class AuthTestCases(unittest.TestCase):
         result = self.client().post("/auth/register/", data=self.user_data)
         results = json.loads(result.data.decode())
 
-        self.assertEqual(results["message"], "You registered successfully. Log in.")
+        self.assertEqual(results["message"],
+                         "You registered successfully. Log in.")
         self.assertEqual(result.status_code, 201)
 
     def test_double_registration(self):
@@ -78,6 +79,7 @@ class AuthTestCases(unittest.TestCase):
         final_result = json.loads(result.data.decode())
 
         self.assertEqual(result.status_code, 401)
-        self.assertEqual(final_result["message"], "Invalid email or password. Please try again.")
+        self.assertEqual(final_result["message"],
+                         "Invalid email or password. Please try again.")
 
 
