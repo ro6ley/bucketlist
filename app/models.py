@@ -150,8 +150,9 @@ class Item(db.Model):
     # Foreign Key to Bucketlist
     bucketlist_id = db.Column(db.Integer, db.ForeignKey(BucketList.id))
 
-    def __init__(self, name):
+    def __init__(self, name, bucketlist_id):
         self.name = name
+        self.bucketlist_id = bucketlist_id
 
     def save(self):
         """
@@ -165,10 +166,11 @@ class Item(db.Model):
         """
         Get all items in a bucketlists
         """
-        pass
+        return Item.query.filter_by(bucketlist_id=BucketList.id)
 
     def delete(self):
         """
         Delete an item in the bucketlist
         """
-        pass
+        db.session.delete(self)
+        db.session.commit()
