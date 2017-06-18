@@ -28,9 +28,10 @@ def create_app(config_name):
     def bucketlists():
         # Get access token from header
         auth_header = request.headers.get("Authorization")
-        access_token = auth_header.split(" ")[1]
+        # access_token = auth_header.split(" ")[1]
 
-        if access_token:
+        if auth_header:
+            access_token = auth_header.split(" ")[1]
             # Attempt to decode the token and get the user id
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
@@ -77,13 +78,19 @@ def create_app(config_name):
 
                 return make_response(jsonify(response)), 401
 
+        else:
+            response = {
+                "message": "Register or log in to access this resource"
+            }
+            return make_response(jsonify(response)), 403
+
     @app.route("/api/v1/bucketlists/<int:id>/", methods=["GET", "PUT", "DELETE"])
     def bucketlist_manipulation(id, **kwargs):
         # Get access token from header
         auth_header = request.headers.get("Authorization")
-        access_token = auth_header.split(" ")[1]
 
-        if access_token:
+        if auth_header:
+            access_token = auth_header.split(" ")[1]
             # Attempt to decode the token and get the user id
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
@@ -118,12 +125,26 @@ def create_app(config_name):
                     return response
 
                 elif request.method == "GET":
+                    items = Item.query.filter_by(bucketlist_id=id)
+                    items_list = []
+
+                    for item in items:
+                        obj = {
+                            "id": item.id,
+                            "name": item.name,
+                            "date_created": item.date_created,
+                            "date_modified": item.date_modified,
+                            "done": item.done
+                        }
+                        items_list.append(obj)
+
                     response = jsonify({
                         "id": bucketlist.id,
                         "name": bucketlist.name,
                         "date_created": bucketlist.date_created,
                         "date_modified": bucketlist.date_modified,
-                        "created_by": bucketlist.created_by
+                        "created_by": bucketlist.created_by,
+                        "items": items_list
                     })
 
                     response.status_code = 200
@@ -139,13 +160,19 @@ def create_app(config_name):
                 response.status_code = 401
                 return response
 
+        else:
+            response = {
+                "message": "Register or log in to access this resource"
+            }
+            return make_response(jsonify(response)), 403
+
     @app.route("/api/v1/bucketlists/<int:id>/items/", methods=["POST", "GET"])
-    def items():
+    def items(id):
         # Get access token from header
         auth_header = request.headers.get("Authorization")
-        access_token = auth_header.split(" ")[1]
 
-        if access_token:
+        if auth_header:
+            access_token = auth_header.split(" ")[1]
             # Attempt to decode the token and get the user id
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
@@ -158,28 +185,31 @@ def create_app(config_name):
                 if request.method == "POST":
                     name = str(request.data.get("name", ""))
                     if name:
-                        bucketlist = BucketList(name=name, created_by=user_id)
-                        bucketlist.save()
+                        item = Item(name=name, bucketlist_id=id)
+                        item.save()
                         response = jsonify({
-                            "id": bucketlist.id,
-                            "name": bucketlist.name,
-                            "date_created": bucketlist.date_created,
-                            "date_modified": bucketlist.date_modified,
-                            "created_by": user_id})
+                            "id": item.id,
+                            "name": item.name,
+                            "date_created": item.date_created,
+                            "date_modified": item.date_modified,
+                            "bucketlist_id": item.bucketlist_id,
+                            "created_by": user_id,
+                            "done": item.done})
 
                         return make_response(response), 201
 
                 elif request.method == "GET":
-                    bucketlists = BucketList.query.filter_by(created_by=user_id)
+                    items = Item.query.filter_by(bucketlist_id=id)
                     results = []
 
-                    for bucketlist in bucketlists:
+                    for item in items:
                         obj = {
-                            "id": bucketlist.id,
-                            "name": bucketlist.name,
-                            "date_created": bucketlist.date_created,
-                            "date_modified": bucketlist.date_modified,
-                            "created_by": bucketlist.created_by
+                            "id": item.id,
+                            "name": item.name,
+                            "date_created": item.date_created,
+                            "date_modified": item.date_modified,
+                            "bucketlist_id": item.bucketlist_id,
+                            "done": item.done
                         }
                         results.append(obj)
 
@@ -187,10 +217,99 @@ def create_app(config_name):
                     # response.status_code = 200
                     return make_response(jsonify(results)), 200
 
-    @app.route("/api/v1/bucketlists/<int:id>/items/<int:item_id>/", methods=["POST", "GET"])
-    def items_manipulation():
-        pass
+            else:
+                # User id does not exist so payload is an error message
+                message = user_id
+                response = {
+                    "message": message
+                }
 
+                response.status_code = 401
+                return response
+
+        else:
+            response = {
+                "message": "Register or log in to access this resource"
+            }
+            return make_response(jsonify(response)), 403
+
+    @app.route("/api/v1/bucketlists/<int:id>/items/<int:item_id>/", methods=["GET", "PUT", "DELETE"])
+    def items_manipulation(id, item_id, **kwargs):
+        # Get access token from header
+        auth_header = request.headers.get("Authorization")
+
+        if auth_header:
+            access_token = auth_header.split(" ")[1]
+            # Attempt to decode the token and get the user id
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                # The user is authenticated, (the user_id returned is not an
+                # error string), handle the request
+                item = Item.query.filter_by(bucketlist_id=id).filter_by(id=item_id).first()
+                if not item:
+                    abort(404)
+
+                if request.method == "DELETE":
+                    item.delete()
+                    response = jsonify({
+                        "message": "Item {} has been successfully deleted"
+                        .format(item.name)})
+                    response.status_code = 200
+                    return response
+
+                elif request.method == "PUT":
+                    name = str(request.data.get("name", ""))
+                    done = str(request.data.get("done", ""))
+                    if name:
+                        item.name = name
+                        item.save()
+                        response = jsonify({
+                            "id": item.id,
+                            "name": item.name,
+                            "date_created": item.date_created,
+                            "date_modified": item.date_modified,
+                            "bucketlist_id": item.bucketlist_id,
+                            "created_by": user_id,
+                            "done": item.done})
+
+                        return make_response(response), 200
+
+                    elif done:
+                        item.done = done
+                        item.save()
+                        response = jsonify({
+                            "id": item.id,
+                            "name": item.name,
+                            "date_created": item.date_created,
+                            "date_modified": item.date_modified,
+                            "bucketlist_id": item.bucketlist_id,
+                            "created_by": user_id,
+                            "done": item.done})
+
+                        return make_response(response), 200
+
+                elif request.method == "GET":
+                    all_items = Item.query.filter_by(id=item_id)
+                    results = []
+
+                    for item in all_items:
+                        obj = {
+                            "id": item.id,
+                            "name": item.name,
+                            "date_created": item.date_created,
+                            "date_modified": item.date_modified,
+                            "bucketlist_id": item.bucketlist_id,
+                            "done": item.done
+                        }
+                        results.append(obj)
+
+                    return make_response(jsonify(results)), 200
+
+        else:
+            response = {
+                "message": "Register or log in to access this resource"
+            }
+            return make_response(jsonify(response)), 403
 
     from .auth import auth_blueprint
     app.register_blueprint(auth_blueprint)
