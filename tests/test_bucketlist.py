@@ -383,10 +383,32 @@ class BucketlistTestcase(unittest.TestCase):
 
     def test_search(self):
         """
-        Test search function
+        Test search functionality of the API
         """
+        self.register_test_user()
+        login_result = self.login_test_user()
+        access_token = json.loads(login_result.data.decode())["access_token"]
+
         result = self.client().post("/api/v1/bucketlists/",
-                                    data={"q": "Go to Dar"})
+                                    headers=dict(Authorization="Bearer " +
+                                                               access_token),
+                                    data=self.bucketlist)
+        # Confirm that the bucket list has been created and status code 201
+        # returned
+        self.assertEqual(result.status_code, 201)
+
+        search_result = self.client().get(
+            "/api/v1/bucketlists/?q=Dar",
+            headers=dict(Authorization="Bearer " + access_token))
+        self.assertEqual(search_result.status_code, 200)
+        self.assertIn("Go to Dar", str(search_result.data))
+
+        # Search for a bucketlist that does not exist
+        result = self.client().get(
+            "/api/v1/bucketlists/?q=Gym",
+            headers=dict(Authorization="Bearer " + access_token))
+        self.assertEqual(result.status_code, 404)
+        self.assertIn("Bucketlist not found", str(result.data))
 
     def test_pagination(self):
         """
