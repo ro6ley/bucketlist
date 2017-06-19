@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/NaiRobley/bucketlist.svg?branch=develop)](https://travis-ci.org/NaiRobley/bucketlist)
+[![Coverage Status](https://coveralls.io/repos/github/NaiRobley/bucketlist/badge.svg?branch=develop)](https://coveralls.io/github/NaiRobley/bucketlist?branch=develop)
 
 # Project - The BucketList
 
