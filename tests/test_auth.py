@@ -82,4 +82,5 @@ class AuthTestCases(unittest.TestCase):
         self.assertEqual(final_result["message"],
                          "Invalid email or password. Please try again.")
 
-
+if __name__ == "__main__":
+    unittest.main()
