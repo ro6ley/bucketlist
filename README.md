@@ -115,9 +115,9 @@ To interact with the API using Postman
 **Contributions are highly welcomed and appreciated**
 
 ## Libraries
-[Flask](http://www.flask.org/) - Flask
+[Flask](http://flask.pocoo.org/) - Flask is a microframework for Python based on Werkzeug, Jinja 2 and good intentions. 
 
-[SQLAlchemy]() - SQLAlchemy
+[SQLAlchemy](https://www.sqlalchemy.org/) - SQLAlchemy is the Python SQL toolkit and Object Relational Mapper that gives application developers the full power and flexibility of SQL.
 
 
 ## Authors
