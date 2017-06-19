@@ -101,11 +101,27 @@ def create_app(config_name):
                         results = []
 
                         for bucketlist in bucketlists:
+                            # Get the items in the bucketlists searched
+                            items = Item.query.filter_by(
+                                bucketlist_id=bucketlist.id)
+                            items_list = []
+
+                            for item in items:
+                                obj = {
+                                    "id": item.id,
+                                    "name": item.name,
+                                    "date_created": item.date_created,
+                                    "date_modified": item.date_modified,
+                                    "done": item.done
+                                }
+                                items_list.append(obj)
+
                             bucketlist_object = {
                                 "id": bucketlist.id,
                                 "name": bucketlist.name,
                                 "date_created": bucketlist.date_created,
                                 "date_modified": bucketlist.date_modified,
+                                "items": items_list,
                                 "created_by": bucketlist.created_by
                             }
                             results.append(bucketlist_object)
