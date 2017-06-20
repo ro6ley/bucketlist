@@ -210,7 +210,7 @@ def create_app(config_name):
             response = {
                 "message": "Register or log in to access this resource"
             }
-            return make_response(jsonify(response)), 403
+            return make_response(jsonify(response)), 401
 
     @app.route("/api/v1/bucketlists/<int:id>/",
                methods=["GET", "PUT", "DELETE"])
@@ -294,7 +294,7 @@ def create_app(config_name):
             response = {
                 "message": "Register or log in to access this resource"
             }
-            return make_response(jsonify(response)), 403
+            return make_response(jsonify(response)), 401
 
     @app.route("/api/v1/bucketlists/<int:id>/items/", methods=["POST", "GET"])
     def items(id):
@@ -361,7 +361,7 @@ def create_app(config_name):
             response = {
                 "message": "Register or log in to access this resource"
             }
-            return make_response(jsonify(response)), 403
+            return make_response(jsonify(response)), 401
 
     @app.route("/api/v1/bucketlists/<int:id>/items/<int:item_id>/",
                methods=["GET", "PUT", "DELETE"])
@@ -441,7 +441,7 @@ def create_app(config_name):
             response = {
                 "message": "Register or log in to access this resource"
             }
-            return make_response(jsonify(response)), 403
+            return make_response(jsonify(response)), 401
 
     from .auth import auth_blueprint
     app.register_blueprint(auth_blueprint)
