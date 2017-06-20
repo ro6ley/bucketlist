@@ -271,7 +271,7 @@ class BucketlistTestcase(unittest.TestCase):
         # Get a single item on a bucketlist
         single_item = self.client().get("/api/v1/bucketlists/1/items/1/",
                                         headers=dict(Authorization="Bearer " +
-                                                      access_token))
+                                                     access_token))
         self.assertEqual(single_item.status_code, 200)
         self.assertIn("I need to go soon", str(single_item.data))
 
@@ -322,7 +322,8 @@ class BucketlistTestcase(unittest.TestCase):
                                         headers=dict(Authorization="Bearer " +
                                                      access_token),
                                         data={"done": True})
-        result = json.loads(single_item.data.decode("utf-8").replace("'", "\""))
+        result = json.loads(single_item.data.decode("utf-8").
+                            replace("'", "\""))
         self.assertEqual(single_item.status_code, 200)
         self.assertEqual(result["done"], True)
 
@@ -363,8 +364,9 @@ class BucketlistTestcase(unittest.TestCase):
 
         # Delete the item
         single_item = self.client().delete("/api/v1/bucketlists/1/items/1/",
-                                        headers=dict(Authorization="Bearer " +
-                                                     access_token))
+                                           headers=dict(
+                                               Authorization="Bearer " +
+                                                             access_token))
         self.assertEqual(single_item.status_code, 200)
 
         deleted_item = self.client().get("/api/v1/bucketlists/1/items/1/",
@@ -430,7 +432,8 @@ class BucketlistTestcase(unittest.TestCase):
         result = self.client().get(
             '/api/v1/bucketlists/?limit=20',
             headers=dict(Authorization="Bearer " + access_token))
-        json_results = json.loads(result.data.decode("utf-8").replace("'", "\""))
+        json_results = json.loads(result.data.decode("utf-8").
+                                  replace("'", "\""))
         self.assertEqual(result.status_code, 200)
         self.assertIn("next_page", str(result.data))
         self.assertIn("previous_page", str(result.data))
@@ -444,7 +447,8 @@ class BucketlistTestcase(unittest.TestCase):
         result = self.client().get(
             '/api/v1/bucketlists/?limit=20')
         self.assertEqual(result.status_code, 403)
-        self.assertIn("Register or log in to access this resource", str(result.data))
+        self.assertIn("Register or log in to access this resource",
+                      str(result.data))
 
     def tearDown(self):
         with self.app.app_context():
