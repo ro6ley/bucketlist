@@ -70,7 +70,7 @@ class BucketlistTestcase(unittest.TestCase):
         """
         result = self.client().post("/api/v1/bucketlists/",
                                     data=self.bucketlist)
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -99,7 +99,7 @@ class BucketlistTestcase(unittest.TestCase):
         authorization is provided
         """
         result = self.client().get("/api/v1/bucketlists/")
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -131,7 +131,7 @@ class BucketlistTestcase(unittest.TestCase):
         authorization is provided
         """
         result = self.client().get("/api/v1/bucketlists/1/")
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -168,7 +168,7 @@ class BucketlistTestcase(unittest.TestCase):
         """
         result = self.client().put("/api/v1/bucketlists/1/",
                                    data={"name": "Swim how to learn"})
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -204,7 +204,7 @@ class BucketlistTestcase(unittest.TestCase):
         authorization is provided
         """
         result = self.client().delete("/api/v1/bucketlists/1/")
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -240,7 +240,7 @@ class BucketlistTestcase(unittest.TestCase):
         """
         result = self.client().post("/api/v1/bucketlists/1/items/",
                                     data=self.item)
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -281,7 +281,7 @@ class BucketlistTestcase(unittest.TestCase):
         authorization is provided
         """
         result = self.client().get("/api/v1/bucketlists/1/items/1/")
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -334,7 +334,7 @@ class BucketlistTestcase(unittest.TestCase):
         """
         result = self.client().put("/api/v1/bucketlists/1/items/1/",
                                    data={"name": "I really need to go soon"})
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -379,7 +379,7 @@ class BucketlistTestcase(unittest.TestCase):
         Test that item deletion without auth raises an error
         """
         result = self.client().delete("/api/v1/bucketlists/1/items/1/")
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
@@ -411,6 +411,15 @@ class BucketlistTestcase(unittest.TestCase):
             headers=dict(Authorization="Bearer " + access_token))
         self.assertEqual(result.status_code, 404)
         self.assertIn("Bucketlist not found", str(result.data))
+
+    def test_search_without_auth(self):
+        """
+        Test that search without login returns an error
+        """
+        search_result = self.client().get("/api/v1/bucketlists/?q=Dar")
+        self.assertEqual(search_result.status_code, 401)
+        self.assertIn("Register or log in to access this resource",
+                      str(search_result.data))
 
     def test_pagination(self):
         """
@@ -446,7 +455,7 @@ class BucketlistTestcase(unittest.TestCase):
         """
         result = self.client().get(
             '/api/v1/bucketlists/?limit=20')
-        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
 
