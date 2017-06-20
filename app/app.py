@@ -72,15 +72,18 @@ def create_app(config_name):
                             # Set the default limit value if none was received
                             limit = 10
 
-                        paginated_results = BucketList.query.filter_by(created_by=user_id).paginate(page, limit, False)
+                        paginated_results = BucketList.query.filter_by(
+                            created_by=user_id).paginate(page, limit, False)
 
                         if paginated_results.has_next:
-                            next_page = request.endpoint +'?page=' + str(page + 1) + '&limit=' + str(limit)
+                            next_page = request.endpoint + '?page=' + str(
+                                page + 1) + '&limit=' + str(limit)
                         else:
                             next_page = ""
 
                         if paginated_results.has_prev:
-                            previous_page = request.endpoint +'?page=' + str(page - 1) + '&limit=' + str(limit)
+                            previous_page = request.endpoint + '?page=' + str(
+                                page - 1) + '&limit=' + str(limit)
                         else:
                             previous_page = ""
 
@@ -131,7 +134,8 @@ def create_app(config_name):
                             search_results = []
                             for bucketlist in search:
                                 # Get the items in the bucketlists searched
-                                items = Item.query.filter_by(bucketlist_id=bucketlist.id)
+                                items = Item.query.filter_by(
+                                    bucketlist_id=bucketlist.id)
                                 items_list = []
 
                                 for item in items:
@@ -228,7 +232,8 @@ def create_app(config_name):
                 if request.method == "DELETE":
                     bucketlist.delete()
                     response = jsonify({
-                        "message": "Bucketlist {} has been successfully deleted"
+                        "message": "Bucketlist {} has been"
+                                   "successfully deleted"
                         .format(bucketlist.name)})
                     response.status_code = 200
                     return response
