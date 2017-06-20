@@ -53,10 +53,76 @@ def create_app(config_name):
                         return make_response(response), 201
 
                 elif request.method == "GET":
-                    bucketlists = BucketList.query.filter_by(
-                        created_by=user_id)
                     search_query = str(request.args.get("q", ""))
-                    if search_query:
+
+                    if not search_query:
+                        # Paginate results for all bucketlists by default
+                        limit = request.args.get("limit")
+                        if request.args.get("page"):
+                            # Get the page requested
+                            page = int(request.args.get("page"))
+                        else:
+                            # If no page number request, start at the first one
+                            page = 1
+
+                        if limit and int(limit) < 100:
+                            # Use the limit value from user if it exists
+                            limit = int(request.args.get("limit"))
+                        else:
+                            # Set the default limit value if none was received
+                            limit = 10
+
+                        paginated_results = BucketList.query.filter_by(created_by=user_id).paginate(page, limit, False)
+
+                        if paginated_results.has_next:
+                            next_page = request.endpoint +'?page=' + str(page + 1) + '&limit=' + str(limit)
+                        else:
+                            next_page = ""
+
+                        if paginated_results.has_prev:
+                            previous_page = request.endpoint +'?page=' + str(page - 1) + '&limit=' + str(limit)
+                        else:
+                            previous_page = ""
+
+                        paginated_bucketlists = paginated_results.items
+                        # Return the bucket lists
+                        results = []
+
+                        for bucketlist in paginated_bucketlists:
+                            # Get the items in the bucketlists searched
+                            items = Item.query.filter_by(
+                                bucketlist_id=bucketlist.id)
+                            items_list = []
+
+                            for item in items:
+                                obj = {
+                                    "id": item.id,
+                                    "name": item.name,
+                                    "date_created": item.date_created,
+                                    "date_modified": item.date_modified,
+                                    "done": item.done
+                                }
+                                items_list.append(obj)
+
+                            bucketlist_object = {
+                                "id": bucketlist.id,
+                                "name": bucketlist.name,
+                                "date_created": bucketlist.date_created,
+                                "date_modified": bucketlist.date_modified,
+                                "items": items_list,
+                                "created_by": bucketlist.created_by
+                            }
+                            results.append(bucketlist_object)
+
+                        response = {
+                                "next_page": next_page,
+                                "previous_page": previous_page,
+                                "bucketlists": results
+                            }
+
+                        return make_response(jsonify(response)), 200
+
+                    elif search_query:
                         # If it was a search request
                         search = BucketList.query.filter(
                             BucketList.name.contains(search_query)).all()
