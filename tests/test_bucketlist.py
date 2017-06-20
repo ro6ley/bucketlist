@@ -414,7 +414,37 @@ class BucketlistTestcase(unittest.TestCase):
         """
         Test pagination in the API
         """
-        pass
+        self.register_test_user()
+        result = self.login_test_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        result = self.client().post("/api/v1/bucketlists/",
+                                    headers=dict(Authorization="Bearer " +
+                                                               access_token),
+                                    data=self.bucketlist)
+        # Confirm that the bucket list has been created and status code 201
+        # returned
+        self.assertEqual(result.status_code, 201)
+        self.assertIn("Go to Dar", str(result.data))
+
+        result = self.client().get(
+            '/api/v1/bucketlists/?limit=20',
+            headers=dict(Authorization="Bearer " + access_token))
+        json_results = json.loads(result.data.decode("utf-8").replace("'", "\""))
+        self.assertEqual(result.status_code, 200)
+        self.assertIn("next_page", str(result.data))
+        self.assertIn("previous_page", str(result.data))
+        self.assertIn("Dar", str(result.data))
+        self.assertTrue(json_results["bucketlists"])
+
+    def test_pagination_without_auth(self):
+        """
+        Test that pagination returns error when user not logged in
+        """
+        result = self.client().get(
+            '/api/v1/bucketlists/?limit=20')
+        self.assertEqual(result.status_code, 403)
+        self.assertIn("Register or log in to access this resource", str(result.data))
 
     def tearDown(self):
         with self.app.app_context():
