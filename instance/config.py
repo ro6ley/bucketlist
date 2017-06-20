@@ -6,7 +6,6 @@ class Config(object):
     DEBUG = False
     CSRF_ENABLED = True
     SECRET = 'A-R3ally-LONG_PI3c3-OFTEXT'
-    # SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/flask_api'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///flask_api.db'
 
 
@@ -18,7 +17,6 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Config for testing purposes"""
     TESTING = True
-    # SQLALCHEMY_DATABASE_URI = 'postgresql:///test_db'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test_db.db'
     DEBUG = True
 
