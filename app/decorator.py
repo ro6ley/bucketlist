@@ -1,4 +1,5 @@
 from functools import wraps
+
 from flask import jsonify, request, abort, make_response
 
 from app.models import BucketList, Item, User
