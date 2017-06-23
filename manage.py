@@ -1,7 +1,7 @@
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
+
 from app.app import db, create_app
-from app.models import BucketList, Item, User
 
 
 app = create_app(config_name="development")

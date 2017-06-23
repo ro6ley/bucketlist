@@ -19,11 +19,8 @@ def create_app(config_name):
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.url_map.strict_slashes = False
     db.init_app(app)
-
-    @app.route("/api/v1/")
-    def index():
-        return "Welcome"
 
     @app.route("/api/v1/bucketlists/", methods=["POST", "GET"])
     @check_auth
@@ -202,7 +199,7 @@ def create_app(config_name):
                 "message": "Bucketlist {} has been"
                            "successfully deleted"
                 .format(bucketlist.name)})
-            response.status_code = 200
+            response.status_code = 204
             return response
 
         elif request.method == "PUT":
@@ -218,7 +215,7 @@ def create_app(config_name):
                 "created_by": bucketlist.created_by
             })
 
-            response.status_code = 200
+            response.status_code = 201
             return response
 
         elif request.method == "GET":
@@ -301,7 +298,7 @@ def create_app(config_name):
             response = jsonify({
                 "message": "Item {} has been successfully deleted"
                 .format(item.name)})
-            response.status_code = 200
+            response.status_code = 204
             return response
 
         elif request.method == "PUT":
@@ -319,7 +316,7 @@ def create_app(config_name):
                     "created_by": user_id,
                     "done": item.done})
 
-                return make_response(response), 200
+                return make_response(response), 201
 
             elif done:
                 item.done = done
