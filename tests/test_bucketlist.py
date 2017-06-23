@@ -13,29 +13,33 @@ class BucketlistTestCases(unittest.TestCase):
         self.app = create_app("testing")
         # set up the test client
         self.client = self.app.test_client
-        self.bucketlist = {"name": "Go to Dar"}
-        self.item = {"name": "I need to go soon"}
+        self.bucketlist = json.dumps(dict({"name": "Go to Dar"}))
+        self.item = json.dumps(dict({"name": "I need to go soon"}))
 
         # bind the app to the current context
         with self.app.app_context():
             # create all tables
             db.create_all()
 
+        content_type = 'application/json'
+
         # Register a test user
-        self.user_data = {
+        self.user_data = json.dumps(dict({
             "username": "robley",
             "email": "robley@gori.com",
             "password": "test_password"
-                }
-        self.client().post("/auth/register/", data=self.user_data)
+                }))
+        self.client().post("/auth/register/", data=self.user_data,
+                           content_type="application/json")
 
-        self.login_data = {
+        self.login_data = json.dumps(dict({
             "username": "robley",
             "password": "test_password"
-        }
+        }))
         # Log is as the test user and get a token
         self.login_result = self.client().post("/auth/login/",
-                                               data=self.login_data)
+                                               data=self.login_data,
+                                               content_type="application/json")
         self.access_token = json.loads(
             self.login_result.data.decode())['access_token']
 
@@ -46,7 +50,8 @@ class BucketlistTestCases(unittest.TestCase):
         result = self.client().post("/api/v1/bucketlists/",
                                     headers=dict(Authorization="Bearer " +
                                                  self.access_token),
-                                    data=self.bucketlist)
+                                    data=self.bucketlist,
+                                    content_type="application/json")
         # Confirm that the bucket list has been created and status code 201
         # returned
         self.assertEqual(result.status_code, 201)
@@ -58,7 +63,8 @@ class BucketlistTestCases(unittest.TestCase):
         authorization is provided
         """
         result = self.client().post("/api/v1/bucketlists/",
-                                    data=self.bucketlist)
+                                    data=self.bucketlist,
+                                    content_type="application/json")
         self.assertEqual(result.status_code, 401)
         self.assertIn("Register or log in to access this resource",
                       str(result.data))
@@ -70,7 +76,8 @@ class BucketlistTestCases(unittest.TestCase):
         result = self.client().post("/api/v1/bucketlists/",
                                     headers=dict(Authorization="Bearer " +
                                                  self.access_token),
-                                    data=self.bucketlist)
+                                    data=self.bucketlist,
+                                    content_type="application/json")
         self.assertEqual(result.status_code, 201)
         result = self.client().get("/api/v1/bucketlists/",
                                    headers=dict(Authorization="Bearer " +
@@ -95,7 +102,8 @@ class BucketlistTestCases(unittest.TestCase):
         result = self.client().post("/api/v1/bucketlists/",
                                     headers=dict(Authorization="Bearer " +
                                                  self.access_token),
-                                    data=self.bucketlist)
+                                    data=self.bucketlist,
+                                    content_type="application/json")
         self.assertEqual(result.status_code, 201)
         result_in_json = json.loads(
             result.data.decode("utf-8").replace("'", "\""))
@@ -232,7 +240,8 @@ class BucketlistTestCases(unittest.TestCase):
         result = self.client().post("/api/v1/bucketlists/",
                                     headers=dict(Authorization="Bearer " +
                                                  self.access_token),
-                                    data=self.bucketlist)
+                                    data=self.bucketlist,
+                                    content_type="application/json")
         # Confirm that the bucket list has been created and status code 201
         # returned
         self.assertEqual(result.status_code, 201)
@@ -270,7 +279,8 @@ class BucketlistTestCases(unittest.TestCase):
         result = self.client().post("/api/v1/bucketlists/",
                                     headers=dict(Authorization="Bearer " +
                                                  self.access_token),
-                                    data=self.bucketlist)
+                                    data=self.bucketlist,
+                                    content_type="application/json")
         # Confirm that the bucket list has been created and status code 201
         # returned
         self.assertEqual(result.status_code, 201)
