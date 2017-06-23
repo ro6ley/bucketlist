@@ -12,11 +12,11 @@ class AuthTestCases(unittest.TestCase):
         self.app = create_app(config_name="testing")
         # Set up the test client
         self.client = self.app.test_client
-        self.user_data = {
+        self.user_data = json.dumps(dict({
             "username": "robley",
             "email": "robley.gori@andela.com",
             "password": "test_password"
-        }
+        }))
 
         with self.app.app_context():
             # create all tables
@@ -28,7 +28,8 @@ class AuthTestCases(unittest.TestCase):
         """
         Test that a new user can be registered
         """
-        result = self.client().post("/auth/register", data=self.user_data)
+        result = self.client().post("/auth/register", data=self.user_data,
+                                    content_type="application/json")
         results = json.loads(result.data.decode())
 
         self.assertEqual(results["message"],
@@ -39,12 +40,14 @@ class AuthTestCases(unittest.TestCase):
         """
         Test that a user cannot be registered twice
         """
-        result = self.client().post("/auth/register/", data=self.user_data)
+        result = self.client().post("/auth/register/", data=self.user_data,
+                                    content_type="application/json")
         self.assertEqual(result.status_code, 201)
 
         # Test double registration
         second_result = self.client().post("/auth/register/",
-                                           data=self.user_data)
+                                           data=self.user_data,
+                                           content_type="application/json")
         self.assertEqual(second_result.status_code, 409)
         final_result = json.loads(second_result.data.decode())
         self.assertEqual(final_result["message"],
@@ -54,12 +57,13 @@ class AuthTestCases(unittest.TestCase):
         """
         Test that missing username throws error
         """
-        new_user = {
+        new_user = json.dumps(dict({
             "username": "",
             "password": "new_password"
-        }
+        }))
 
-        result = self.client().post("/auth/register/", data=new_user)
+        result = self.client().post("/auth/register/", data=new_user,
+                                    content_type="application/json")
         final_result = json.loads(result.data.decode())
 
         self.assertEqual(result.status_code, 400)
@@ -70,12 +74,13 @@ class AuthTestCases(unittest.TestCase):
         """
         Test that missing password throws an error
         """
-        new_user = {
+        new_user = json.dumps(dict({
             "username": "robley",
             "password": ""
-        }
+        }))
 
-        result = self.client().post("/auth/register/", data=new_user)
+        result = self.client().post("/auth/register/", data=new_user,
+                                    content_type="application/json")
         final_result = json.loads(result.data.decode())
 
         self.assertEqual(result.status_code, 400)
@@ -86,10 +91,12 @@ class AuthTestCases(unittest.TestCase):
         """
         Test that a user can login successfully
         """
-        result = self.client().post("/auth/register/", data=self.user_data)
+        result = self.client().post("/auth/register/", data=self.user_data,
+                                    content_type="application/json")
         self.assertEqual(result.status_code, 201)
 
-        login_result = self.client().post("/auth/login/", data=self.user_data)
+        login_result = self.client().post("/auth/login/", data=self.user_data,
+                                          content_type="application/json")
         results = json.loads(login_result.data.decode())
 
         # Confirm the success message
@@ -102,13 +109,14 @@ class AuthTestCases(unittest.TestCase):
         """
         Test that non registered users cannot log in
         """
-        non_user = {
+        non_user = json.dumps(dict({
             "username": "nonuser",
             "email": "nonuser@email.com",
             "password": "invalidpassword"
-        }
+        }))
 
-        result = self.client().post("/auth/login/", data=non_user)
+        result = self.client().post("/auth/login/", data=non_user,
+                                    content_type="application/json")
         final_result = json.loads(result.data.decode())
 
         self.assertEqual(result.status_code, 401)
@@ -119,12 +127,13 @@ class AuthTestCases(unittest.TestCase):
         """
         Test that missing password throws an error
         """
-        new_user = {
+        new_user = json.dumps(dict({
             "username": "robley",
             "password": ""
-        }
+        }))
 
-        result = self.client().post("/auth/login/", data=new_user)
+        result = self.client().post("/auth/login/", data=new_user,
+                                    content_type="application/json")
         final_result = json.loads(result.data.decode())
 
         self.assertEqual(result.status_code, 400)
@@ -135,12 +144,13 @@ class AuthTestCases(unittest.TestCase):
         """
         Test that missing username throws an error
         """
-        new_user = {
+        new_user = json.dumps(dict({
             "username": "",
             "password": "test_password"
-        }
+        }))
 
-        result = self.client().post("/auth/login/", data=new_user)
+        result = self.client().post("/auth/login/", data=new_user,
+                                    content_type="application/json")
         final_result = json.loads(result.data.decode())
 
         self.assertEqual(result.status_code, 400)
