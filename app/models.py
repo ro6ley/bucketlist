@@ -1,11 +1,10 @@
-import os
+from datetime import datetime, timedelta
+
 import jwt
 from flask_bcrypt import Bcrypt
 from flask import current_app
-from datetime import datetime, timedelta
 
 from app.app import db
-from instance.config import Config
 
 
 class User(db.Model):
@@ -43,7 +42,7 @@ class User(db.Model):
         try:
             # set up a payload with an expiration time
             payload = {
-                'exp': datetime.utcnow() + timedelta(minutes=5),
+                'exp': datetime.utcnow() + timedelta(hours=1),
                 'iat': datetime.utcnow(),
                 'sub': user_id
             }
@@ -150,8 +149,9 @@ class Item(db.Model):
     # Foreign Key to Bucketlist
     bucketlist_id = db.Column(db.Integer, db.ForeignKey(BucketList.id))
 
-    def __init__(self, name):
+    def __init__(self, name, bucketlist_id):
         self.name = name
+        self.bucketlist_id = bucketlist_id
 
     def save(self):
         """
@@ -165,10 +165,11 @@ class Item(db.Model):
         """
         Get all items in a bucketlists
         """
-        pass
+        return Item.query.filter_by(bucketlist_id=BucketList.id)
 
     def delete(self):
         """
         Delete an item in the bucketlist
         """
-        pass
+        db.session.delete(self)
+        db.session.commit()

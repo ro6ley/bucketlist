@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/NaiRobley/bucketlist.svg?branch=develop)](https://travis-ci.org/NaiRobley/bucketlist)
+[![Coverage Status](https://coveralls.io/repos/github/NaiRobley/bucketlist/badge.svg?branch=develop)](https://coveralls.io/github/NaiRobley/bucketlist?branch=develop)
 
 # Project - The BucketList
 
@@ -115,7 +117,10 @@ To interact with the API using Postman
 **Contributions are highly welcomed and appreciated**
 
 ## Libraries
-[Flask](http://www.flask.org/) - Flask
+[Flask](http://flask.pocoo.org/) - Flask is a microframework for Python based on Werkzeug, Jinja 2 and good intentions. 
+
+[SQLAlchemy](https://www.sqlalchemy.org/) - SQLAlchemy is the Python SQL toolkit and Object Relational Mapper that gives application developers the full power and flexibility of SQL.
+
 
 [SQLAlchemy]() - SQLAlchemy
 

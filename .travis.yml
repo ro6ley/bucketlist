@@ -1,0 +1,13 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+# command to install dependencies
+install: "pip install -r requirements.txt"
+
+# --source specifies what packages to cover, you probably want to use that option
+script:
+  coverage run --source="app/","tests/" -m unittest
+
+after_success:
+  coveralls

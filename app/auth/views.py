@@ -1,7 +1,7 @@
-from . import auth_blueprint
-
 from flask.views import MethodView
 from flask import make_response, request, jsonify
+
+from . import auth_blueprint
 from app.models import User
 
 
@@ -13,39 +13,50 @@ class RegistrationView(MethodView):
         """
         Handle POST request from /auth/register/
         """
-        # Check if user exists
-        user = User.query.filter_by(username=request.data["username"]).first()
+        if request.data["username"] and request.data["password"]:
+            # Check if user exists
+            user = User.query.filter_by(
+                username=request.data["username"]).first()
 
-        if not user:
-            try:
-                post_data = request.data
+            if not user:
+                try:
+                    post_data = request.data
 
-                username = post_data["username"]
-                email = post_data["email"]
-                password = post_data["password"]
-                user = User(username=username, password=password, email=email)
-                user.save()
+                    username = post_data["username"]
+                    email = post_data["email"]
+                    password = post_data["password"]
+                    user = User(username=username, password=password,
+                                email=email)
+                    user.save()
 
+                    response = {
+                        "message": "You registered successfully. Log in."
+                    }
+
+                    return make_response(jsonify(response)), 201
+
+                except Exception as e:
+                    response = {
+                        "message": str(e)
+                    }
+
+                    return make_response(jsonify(response)), 401
+
+            # If user exists
+            else:
                 response = {
-                    "message": "You registered successfully. Log in."
+                    "message": "User already exists. Please login"
                 }
 
-                return make_response(jsonify(response)), 201
+                return make_response(jsonify(response)), 409
 
-            except Exception as e:
-                response = {
-                    "message": str(e)
-                }
-
-                return make_response(jsonify(response)), 401
-
-        # If user exists
         else:
+            # Either username or password is not provided
             response = {
-                "message": "User already exists. Please login"
+                "message": "Error. The username or password cannot be empty"
             }
 
-            return make_response(jsonify(response)), 202
+            return make_response(jsonify(response)), 400
 
 
 class LoginView(MethodView):
@@ -55,29 +66,39 @@ class LoginView(MethodView):
     def post(self):
         """Handle POST request for /auth/login/"""
         try:
-            user = User.query.filter_by(
-                username=request.data["username"]).first()
+            if request.data["username"] and request.data["password"]:
+                user = User.query.filter_by(
+                    username=request.data["username"]).first()
 
-            # Authenticate the user using the password
-            if user and user.check_password(request.data["password"]):
-                # Generate the access token which will be used
-                # as the authorization header
-                access_token = user.generate_token(user.id)
-                if access_token:
+                # Authenticate the user using the password
+                if user and user.check_password(request.data["password"]):
+                    # Generate the access token which will be used
+                    # as the authorization header
+                    access_token = user.generate_token(user.id)
+                    if access_token:
+                        response = {
+                            "message": "You logged in successfully.",
+                            "access_token": access_token.decode()
+                        }
+
+                        return make_response(jsonify(response)), 200
+
+                elif not user:
+                    # If the user does not exists
                     response = {
-                        "message": "You logged in successfully.",
-                        "access_token": access_token.decode()
+                        "message": "Invalid email or password. "
+                                   "Please try again."
                     }
 
-                    return make_response(jsonify(response)), 200
-
+                    return make_response(jsonify(response)), 401
             else:
-                # If the user does not exists
+                # Either username or password is not provided
                 response = {
-                    "message": "Invalid email or password. Please try again."
+                    "message": "Error. The username or password "
+                               "cannot be empty"
                 }
 
-                return make_response(jsonify(response)), 401
+                return make_response(jsonify(response)), 400
 
         except Exception as e:
             response = {
