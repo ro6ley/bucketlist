@@ -83,8 +83,8 @@ class LoginView(MethodView):
 
                         return make_response(jsonify(response)), 200
 
-                elif not user:
-                    # If the user does not exists
+                else:
+                    # If the user does not exist or password is wrong
                     response = {
                         "message": "Invalid email or password. "
                                    "Please try again."
