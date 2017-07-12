@@ -3,6 +3,7 @@
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify, request, abort, make_response
+from flask_cors import CORS
 
 # local import
 from instance.config import app_config
@@ -20,6 +21,7 @@ def create_app(config_name):
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.url_map.strict_slashes = False
+    CORS(app)
     db.init_app(app)
 
     @app.route("/api/v1/bucketlists/", methods=["POST", "GET"])
