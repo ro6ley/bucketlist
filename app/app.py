@@ -190,7 +190,8 @@ def create_app(config_name):
                 # If there are no results after the search
                 else:
                     response = {
-                        "message": "Bucketlist not found"
+                        "message": "No results found",
+                        "bucketlists": []
                     }
                     return make_response(jsonify(response)), 404
 
