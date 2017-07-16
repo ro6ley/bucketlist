@@ -96,6 +96,8 @@ class BucketList(db.Model):
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(),
                               onupdate=db.func.current_timestamp())
     created_by = db.Column(db.Integer, db.ForeignKey(User.id))
+    items = db.relationship('Item', order_by="Item.id", 
+                            cascade="all,delete-orphan")
 
     def __init__(self, name, created_by):
         self.name = name
