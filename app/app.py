@@ -138,14 +138,14 @@ def create_app(config_name):
                 if paginated_results.items:
 
                     if paginated_results.has_next:
-                        next_page = request.endpoint + '?q=' + search_query + '&page=' + str(
-                            page + 1) + '&limit=' + str(limit)
+                        next_page = request.endpoint + '?q=' + search_query + \
+                         '&page=' + str(page + 1) + '&limit=' + str(limit)
                     else:
                         next_page = ""
 
                     if paginated_results.has_prev:
-                        previous_page = request.endpoint + '?q=' + search_query + '&page=' + str(
-                            page - 1) + '&limit=' + str(limit)
+                        previous_page = request.endpoint + '?q=' + search_query\
+                         + '&page=' + str(page - 1) + '&limit=' + str(limit)
                     else:
                         previous_page = ""
 
