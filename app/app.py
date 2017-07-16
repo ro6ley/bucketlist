@@ -115,13 +115,45 @@ def create_app(config_name):
                 return make_response(jsonify(response)), 200
 
             elif search_query:
-                # If it was a search request
-                search = BucketList.query.filter(
-                    BucketList.name.contains(search_query)).all()
-                # If the search has returned any results
-                if search:
-                    search_results = []
-                    for bucketlist in search:
+                # Paginate search results for bucket lists
+                limit = request.args.get("limit")
+                if request.args.get("page"):
+                    # Get the page requested
+                    page = int(request.args.get("page"))
+                else:
+                    # If no page number request, start at the first one
+                    page = 1
+
+                if limit and int(limit) < 100:
+                    # Use the limit value from user if it exists
+                    limit = int(request.args.get("limit"))
+                else:
+                    # Set the default limit value if none was received
+                    limit = 10
+
+                paginated_results = BucketList.query.filter(
+                    BucketList.name.ilike('%'+search_query+'%')).filter_by(
+                    created_by=user_id).paginate(page, limit, False)
+
+                if paginated_results:
+
+                    if paginated_results.has_next:
+                        next_page = request.endpoint + '?q=' + search_query + '&page=' + str(
+                            page + 1) + '&limit=' + str(limit)
+                    else:
+                        next_page = ""
+
+                    if paginated_results.has_prev:
+                        previous_page = request.endpoint + '?q=' + search_query + '&page=' + str(
+                            page - 1) + '&limit=' + str(limit)
+                    else:
+                        previous_page = ""
+
+                    paginated_bucketlists = paginated_results.items
+                    # Return the bucket lists
+                    results = []
+
+                    for bucketlist in paginated_bucketlists:
                         # Get the items in the bucketlists searched
                         items = Item.query.filter_by(
                             bucketlist_id=bucketlist.id)
@@ -134,7 +166,7 @@ def create_app(config_name):
                                 "date_created": item.date_created,
                                 "date_modified": item.date_modified,
                                 "done": item.done
-                                }
+                            }
                             items_list.append(obj)
 
                         bucketlist_object = {
@@ -145,9 +177,16 @@ def create_app(config_name):
                             "items": items_list,
                             "created_by": bucketlist.created_by
                         }
-                        search_results.append(bucketlist_object)
+                        results.append(bucketlist_object)
 
-                    return make_response(jsonify(search_results)), 200
+                    response = {
+                            "next_page": next_page,
+                            "previous_page": previous_page,
+                            "bucketlists": results
+                        }
+
+                    return make_response(jsonify(response)), 200
+
                 # If there are no results after the search
                 else:
                     response = {
