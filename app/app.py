@@ -135,7 +135,7 @@ def create_app(config_name):
                     BucketList.name.ilike('%'+search_query+'%')).filter_by(
                     created_by=user_id).paginate(page, limit, False)
 
-                if paginated_results:
+                if paginated_results.items:
 
                     if paginated_results.has_next:
                         next_page = request.endpoint + '?q=' + search_query + '&page=' + str(
