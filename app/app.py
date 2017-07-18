@@ -2,7 +2,7 @@
 
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
-from flask import jsonify, request, abort, make_response
+from flask import jsonify, request, abort, make_response, redirect
 from flask_cors import CORS
 
 # local import
@@ -24,12 +24,18 @@ def create_app(config_name):
     CORS(app)
     db.init_app(app)
 
+    @app.route("/")
+    def home():
+        return redirect('http://docs.bucketlist11.apiary.io')
+
+
     @app.route("/api/v1/bucketlists/", methods=["POST", "GET"])
     @check_auth
     def bucketlists(user_id, *args, **kwargs):
         if request.method == "POST":
+            all_bucketlists = [bucketlist.name for bucketlist in BucketList.query.all()]
             name = str(request.data.get("name", ""))
-            if name:
+            if name and name not in all_bucketlists:
                 bucketlist = BucketList(name=name, created_by=user_id)
                 bucketlist.save()
                 response = jsonify({
@@ -40,6 +46,12 @@ def create_app(config_name):
                     "created_by": user_id})
 
                 return make_response(response), 201
+
+            elif name in all_bucketlists:
+                response = jsonify({
+                                   "message": "Bucket List already exists"
+                                   })
+                return make_response(response), 409
 
         elif request.method == "GET":
             search_query = str(request.args.get("q", ""))
@@ -295,7 +307,8 @@ def create_app(config_name):
 
         if request.method == "POST":
             name = str(request.data.get("name", ""))
-            if name:
+            all_items_names = [item.name for item in Item.query.filter_by(bucketlist_id=id)]
+            if name and name not in all_items_names:
                 item = Item(name=name, bucketlist_id=id)
                 item.save()
                 response = jsonify({
@@ -308,6 +321,13 @@ def create_app(config_name):
                     "done": item.done})
 
                 return make_response(response), 201
+
+            elif name in all_items_names:
+                response = jsonify({
+                                   "message": "Item already exists"
+                                   })
+                return make_response(response), 409
+
 
         elif request.method == "GET":
             items = Item.query.filter_by(bucketlist_id=id)
