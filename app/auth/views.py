@@ -86,7 +86,7 @@ class LoginView(MethodView):
                 else:
                     # If the user does not exist or password is wrong
                     response = {
-                        "message": "Invalid email or password. "
+                        "message": "Invalid username or password. "
                                    "Please try again."
                     }
 
