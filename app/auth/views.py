@@ -1,3 +1,4 @@
+import re
 from flask.views import MethodView
 from flask import make_response, request, jsonify
 
@@ -13,12 +14,18 @@ class RegistrationView(MethodView):
         """
         Handle POST request from /auth/register/
         """
-        if request.data["username"] and request.data["password"]:
+        if request.data["username"].strip(" ") and len(request.data["password"]) >= 6:
             # Check if user exists
             user = User.query.filter_by(
                 username=request.data["username"]).first()
 
-            if not user:
+            user_email = User.query.filter_by(
+                        email=request.data["email"]).first()
+
+            match=re.search(r"^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$", 
+                        request.data['email'])
+
+            if not user and not user_email and match:
                 try:
                     post_data = request.data
 
@@ -42,6 +49,18 @@ class RegistrationView(MethodView):
 
                     return make_response(jsonify(response)), 401
 
+            elif not user and not match:
+                response = {
+                    "message": "Invalid email. Please try again"
+                }
+
+                return make_response(jsonify(response)), 400
+
+            elif not user and user_email:
+                response = {
+                    "message": "Email is already registered. try again"
+                }
+                return make_response(jsonify(response)), 409
             # If user exists
             else:
                 response = {
@@ -50,6 +69,14 @@ class RegistrationView(MethodView):
 
                 return make_response(jsonify(response)), 409
 
+        elif request.data["username"].strip(" ") and 0 < len(request.data["password"]) < 6:
+            # Either username or password is not provided
+            response = {
+                "message": "Error. The password should be at least 6 characters"
+            }
+
+            return make_response(jsonify(response)), 400
+            
         else:
             # Either username or password is not provided
             response = {
@@ -66,7 +93,7 @@ class LoginView(MethodView):
     def post(self):
         """Handle POST request for /auth/login/"""
         try:
-            if request.data["username"] and request.data["password"]:
+            if request.data["username"].strip(" ") and request.data["password"]:
                 user = User.query.filter_by(
                     username=request.data["username"]).first()
 
