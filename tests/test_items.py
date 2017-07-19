@@ -122,10 +122,10 @@ class ItemsTestCases(unittest.TestCase):
                                         headers=dict(Authorization="Bearer " +
                                                      self.access_token),
                                         data=json.dumps(dict(
-                                            {"name": "I need to go soon"})),
+                                            {"name": "I to go soon"})),
                                         content_type="application/json")
         self.assertEqual(single_item.status_code, 201)
-        self.assertIn("I need to go soon", str(single_item.data))
+        self.assertIn("I to go soon", str(single_item.data))
 
         # Mark item as done
         single_item = self.client().put("/api/v1/bucketlists/1/items/1/",
