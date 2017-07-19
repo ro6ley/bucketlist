@@ -121,7 +121,7 @@ class AuthTestCases(unittest.TestCase):
 
         self.assertEqual(result.status_code, 401)
         self.assertEqual(final_result["message"],
-                         "Invalid email or password. Please try again.")
+                         "Invalid username or password. Please try again.")
 
     def test_login_missing_password(self):
         """
