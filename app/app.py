@@ -21,7 +21,7 @@ def create_app(config_name):
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.url_map.strict_slashes = False
-    CORS(app)
+    CORS(app, resources=r'/*')
     db.init_app(app)
 
     @app.route("/")
@@ -33,7 +33,8 @@ def create_app(config_name):
     @check_auth
     def bucketlists(user_id, *args, **kwargs):
         if request.method == "POST":
-            all_bucketlists = [bucketlist.name for bucketlist in BucketList.query.all()]
+            all_bucketlists = [bucketlist.name for bucketlist in 
+            BucketList.query.filter_by(created_by=user_id)]
             name = str(request.data.get("name", ""))
             if name and name not in all_bucketlists:
                 bucketlist = BucketList(name=name, created_by=user_id)
@@ -242,7 +243,7 @@ def create_app(config_name):
     @app.route("/api/v1/bucketlists/<int:id>/",
                methods=["GET", "PUT", "DELETE"])
     @check_auth
-    def bucketlist_manipulation(id, *args, **kwargs):
+    def bucketlist_manipulation(id, user_id, *args, **kwargs):
         bucketlist = BucketList.query.filter_by(id=id).first()
         if not bucketlist:
             abort(404)
@@ -257,20 +258,31 @@ def create_app(config_name):
             return response
 
         elif request.method == "PUT":
+            all_bucketlists = [bucketlist.name for bucketlist in 
+                                BucketList.query.filter_by(created_by=user_id)]
+
             name = str(request.data.get("name", ""))
-            bucketlist.name = name
-            bucketlist.save()
+            if name not in all_bucketlists:
+                bucketlist.name = name
+                bucketlist.save()
 
-            response = jsonify({
-                "id": bucketlist.id,
-                "name": bucketlist.name,
-                "date_created": bucketlist.date_created,
-                "date_modified": bucketlist.date_modified,
-                "created_by": bucketlist.created_by
-            })
+                response = jsonify({
+                    "id": bucketlist.id,
+                    "name": bucketlist.name,
+                    "date_created": bucketlist.date_created,
+                    "date_modified": bucketlist.date_modified,
+                    "created_by": bucketlist.created_by
+                })
 
-            response.status_code = 201
-            return response
+                response.status_code = 201
+                return response
+
+            else:
+                response = jsonify({
+                    "message": "There is an existing bucketlist with the same name. Try again"
+                                   })
+                response.status_code = 409
+                return response
 
         elif request.method == "GET":
             items = Item.query.filter_by(bucketlist_id=id)
@@ -366,7 +378,9 @@ def create_app(config_name):
         elif request.method == "PUT":
             name = str(request.data.get("name", ""))
             done = str(request.data.get("done", ""))
-            if name:
+            all_items = [item.name for item in 
+                                Item.query.filter_by(bucketlist_id=id)]
+            if name and name not in all_items:
                 item.name = name
                 item.save()
                 response = jsonify({
@@ -379,6 +393,13 @@ def create_app(config_name):
                     "done": item.done})
 
                 return make_response(response), 201
+
+            elif name in all_items:
+                response = jsonify({
+                    "message": "There is an existing item with the same name. Try again"
+                                   })
+                response.status_code = 409
+                return response
 
             elif done:
                 item.done = done
