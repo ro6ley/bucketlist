@@ -34,7 +34,7 @@ def create_app(config_name):
     def bucketlists(user_id, *args, **kwargs):
         if request.method == "POST":
             all_bucketlists = [bucketlist.name for bucketlist in 
-            BucketList.query.filter_by(created_by=user_id)]
+                BucketList.query.filter_by(created_by=user_id)]
             name = str(request.data.get("name", ""))
             if name and name not in all_bucketlists:
                 bucketlist = BucketList(name=name, created_by=user_id)
