@@ -6,6 +6,14 @@ python:
 install: "pip install -r requirements.txt"
 
 # --source specifies what packages to cover, you probably want to use that option
+postgres:
+    adapter: postgresql
+    database: myapp_test
+    username: postgres
+    before_script:
+        - "psql -c 'create database myapp_test;' -U postgres"
+        - "rake db:migrate"
+
 script:
   coverage run --source="app/","tests/" -m unittest
 
