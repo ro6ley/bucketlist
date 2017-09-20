@@ -261,7 +261,7 @@ class BucketlistTestCases(unittest.TestCase):
             "/api/v1/bucketlists/?q=Gym",
             headers=dict(Authorization="Bearer " + self.access_token))
         self.assertEqual(result.status_code, 404)
-        self.assertIn("Bucketlist not found", str(result.data))
+        self.assertIn("No results found", str(result.data))
 
     def test_search_without_auth(self):
         """

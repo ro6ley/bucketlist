@@ -2,7 +2,8 @@
 
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
-from flask import jsonify, request, abort, make_response
+from flask import jsonify, request, abort, make_response, redirect
+from flask_cors import CORS
 
 # local import
 from instance.config import app_config
@@ -20,14 +21,22 @@ def create_app(config_name):
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.url_map.strict_slashes = False
+    CORS(app, resources=r'/*')
     db.init_app(app)
+
+    @app.route("/")
+    def home():
+        return redirect('http://docs.bucketlist11.apiary.io')
+
 
     @app.route("/api/v1/bucketlists/", methods=["POST", "GET"])
     @check_auth
     def bucketlists(user_id, *args, **kwargs):
         if request.method == "POST":
+            all_bucketlists = [bucketlist.name for bucketlist in 
+                BucketList.query.filter_by(created_by=user_id)]
             name = str(request.data.get("name", ""))
-            if name:
+            if name and name not in all_bucketlists:
                 bucketlist = BucketList(name=name, created_by=user_id)
                 bucketlist.save()
                 response = jsonify({
@@ -38,6 +47,12 @@ def create_app(config_name):
                     "created_by": user_id})
 
                 return make_response(response), 201
+
+            elif name in all_bucketlists:
+                response = jsonify({
+                                   "message": "Bucket List already exists"
+                                   })
+                return make_response(response), 409
 
         elif request.method == "GET":
             search_query = str(request.args.get("q", ""))
@@ -113,13 +128,45 @@ def create_app(config_name):
                 return make_response(jsonify(response)), 200
 
             elif search_query:
-                # If it was a search request
-                search = BucketList.query.filter(
-                    BucketList.name.contains(search_query)).all()
-                # If the search has returned any results
-                if search:
-                    search_results = []
-                    for bucketlist in search:
+                # Paginate search results for bucket lists
+                limit = request.args.get("limit")
+                if request.args.get("page"):
+                    # Get the page requested
+                    page = int(request.args.get("page"))
+                else:
+                    # If no page number request, start at the first one
+                    page = 1
+
+                if limit and int(limit) < 100:
+                    # Use the limit value from user if it exists
+                    limit = int(request.args.get("limit"))
+                else:
+                    # Set the default limit value if none was received
+                    limit = 10
+
+                paginated_results = BucketList.query.filter(
+                    BucketList.name.ilike('%'+search_query+'%')).filter_by(
+                    created_by=user_id).paginate(page, limit, False)
+
+                if paginated_results.items:
+
+                    if paginated_results.has_next:
+                        next_page = request.endpoint + '?q=' + search_query + \
+                         '&page=' + str(page + 1) + '&limit=' + str(limit)
+                    else:
+                        next_page = ""
+
+                    if paginated_results.has_prev:
+                        previous_page = request.endpoint + '?q=' + search_query\
+                         + '&page=' + str(page - 1) + '&limit=' + str(limit)
+                    else:
+                        previous_page = ""
+
+                    paginated_bucketlists = paginated_results.items
+                    # Return the bucket lists
+                    results = []
+
+                    for bucketlist in paginated_bucketlists:
                         # Get the items in the bucketlists searched
                         items = Item.query.filter_by(
                             bucketlist_id=bucketlist.id)
@@ -132,7 +179,7 @@ def create_app(config_name):
                                 "date_created": item.date_created,
                                 "date_modified": item.date_modified,
                                 "done": item.done
-                                }
+                            }
                             items_list.append(obj)
 
                         bucketlist_object = {
@@ -143,13 +190,21 @@ def create_app(config_name):
                             "items": items_list,
                             "created_by": bucketlist.created_by
                         }
-                        search_results.append(bucketlist_object)
+                        results.append(bucketlist_object)
 
-                    return make_response(jsonify(search_results)), 200
+                    response = {
+                            "next_page": next_page,
+                            "previous_page": previous_page,
+                            "bucketlists": results
+                        }
+
+                    return make_response(jsonify(response)), 200
+
                 # If there are no results after the search
                 else:
                     response = {
-                        "message": "Bucketlist not found"
+                        "message": "No results found",
+                        "bucketlists": []
                     }
                     return make_response(jsonify(response)), 404
 
@@ -188,7 +243,7 @@ def create_app(config_name):
     @app.route("/api/v1/bucketlists/<int:id>/",
                methods=["GET", "PUT", "DELETE"])
     @check_auth
-    def bucketlist_manipulation(id, *args, **kwargs):
+    def bucketlist_manipulation(id, user_id, *args, **kwargs):
         bucketlist = BucketList.query.filter_by(id=id).first()
         if not bucketlist:
             abort(404)
@@ -203,20 +258,31 @@ def create_app(config_name):
             return response
 
         elif request.method == "PUT":
+            all_bucketlists = [bucketlist.name for bucketlist in 
+                                BucketList.query.filter_by(created_by=user_id)]
+
             name = str(request.data.get("name", ""))
-            bucketlist.name = name
-            bucketlist.save()
+            if name not in all_bucketlists:
+                bucketlist.name = name
+                bucketlist.save()
 
-            response = jsonify({
-                "id": bucketlist.id,
-                "name": bucketlist.name,
-                "date_created": bucketlist.date_created,
-                "date_modified": bucketlist.date_modified,
-                "created_by": bucketlist.created_by
-            })
+                response = jsonify({
+                    "id": bucketlist.id,
+                    "name": bucketlist.name,
+                    "date_created": bucketlist.date_created,
+                    "date_modified": bucketlist.date_modified,
+                    "created_by": bucketlist.created_by
+                })
 
-            response.status_code = 201
-            return response
+                response.status_code = 201
+                return response
+
+            else:
+                response = jsonify({
+                    "message": "There is an existing bucketlist with the same name. Try again"
+                                   })
+                response.status_code = 409
+                return response
 
         elif request.method == "GET":
             items = Item.query.filter_by(bucketlist_id=id)
@@ -253,7 +319,8 @@ def create_app(config_name):
 
         if request.method == "POST":
             name = str(request.data.get("name", ""))
-            if name:
+            all_items_names = [item.name for item in Item.query.filter_by(bucketlist_id=id)]
+            if name and name not in all_items_names:
                 item = Item(name=name, bucketlist_id=id)
                 item.save()
                 response = jsonify({
@@ -266,6 +333,13 @@ def create_app(config_name):
                     "done": item.done})
 
                 return make_response(response), 201
+
+            elif name in all_items_names:
+                response = jsonify({
+                                   "message": "Item already exists"
+                                   })
+                return make_response(response), 409
+
 
         elif request.method == "GET":
             items = Item.query.filter_by(bucketlist_id=id)
@@ -304,7 +378,9 @@ def create_app(config_name):
         elif request.method == "PUT":
             name = str(request.data.get("name", ""))
             done = str(request.data.get("done", ""))
-            if name:
+            all_items = [item.name for item in 
+                                Item.query.filter_by(bucketlist_id=id)]
+            if name and name not in all_items:
                 item.name = name
                 item.save()
                 response = jsonify({
@@ -317,6 +393,13 @@ def create_app(config_name):
                     "done": item.done})
 
                 return make_response(response), 201
+
+            elif name in all_items:
+                response = jsonify({
+                    "message": "There is an existing item with the same name. Try again"
+                                   })
+                response.status_code = 409
+                return response
 
             elif done:
                 item.done = done

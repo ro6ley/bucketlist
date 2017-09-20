@@ -44,7 +44,7 @@ class ItemsTestCases(unittest.TestCase):
         # Create a bucket list
         result = self.client().post("/api/v1/bucketlists/",
                                     headers=dict(Authorization="Bearer " +
-                                                               self.access_token),
+                                                 self.access_token),
                                     data=self.bucketlist,
                                     content_type="application/json")
         # Confirm that the bucket list has been
@@ -62,14 +62,15 @@ class ItemsTestCases(unittest.TestCase):
         """
         Test the creation of an item in bucketlist
         """
+        test_item_data = json.dumps(dict({"name": "I need to soon"}))
         # Add an item
         item_result = self.client().post("/api/v1/bucketlists/1/items/",
                                          headers=dict(Authorization="Bearer " +
                                                       self.access_token),
-                                         data=self.item,
+                                         data=test_item_data,
                                          content_type="application/json")
         self.assertEqual(item_result.status_code, 201)
-        self.assertIn("I need to go soon", str(item_result.data))
+        self.assertIn("I need to soon", str(item_result.data))
 
     def test_item_creation_without_auth(self):
         """
@@ -86,11 +87,12 @@ class ItemsTestCases(unittest.TestCase):
         """
         Test that all bucketlist items can be fetched through the API
         """
+        test_item_data = json.dumps(dict({"name": "I need"}))
         # Add an item
         item_result = self.client().post("/api/v1/bucketlists/1/items/",
                                          headers=dict(Authorization="Bearer " +
                                                       self.access_token),
-                                         data=self.item,
+                                         data=test_item_data,
                                          content_type="application/json")
         self.assertEqual(item_result.status_code, 201)
 
@@ -99,7 +101,7 @@ class ItemsTestCases(unittest.TestCase):
                                         headers=dict(Authorization="Bearer " +
                                                      self.access_token))
         self.assertEqual(single_item.status_code, 200)
-        self.assertIn("I need to go soon", str(single_item.data))
+        self.assertIn("I need", str(single_item.data))
 
     def test_get_bucketlist_item_without_auth(self):
         """
@@ -120,10 +122,10 @@ class ItemsTestCases(unittest.TestCase):
                                         headers=dict(Authorization="Bearer " +
                                                      self.access_token),
                                         data=json.dumps(dict(
-                                            {"name": "I need to go soon"})),
+                                            {"name": "I to go soon"})),
                                         content_type="application/json")
         self.assertEqual(single_item.status_code, 201)
-        self.assertIn("I need to go soon", str(single_item.data))
+        self.assertIn("I to go soon", str(single_item.data))
 
         # Mark item as done
         single_item = self.client().put("/api/v1/bucketlists/1/items/1/",

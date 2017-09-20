@@ -19,20 +19,26 @@ def check_auth(func):
 
         else:
             access_token = auth_header.split(" ")[1]
-            # Attempt to decode the token and get the user id
-            user_id = User.decode_token(access_token)
+            if access_token:
+                # Attempt to decode the token and get the user id
+                user_id = User.decode_token(access_token)
 
-            if isinstance(user_id, str):
-                # User id does not exist so payload is an error message
-                message = user_id
-                response = jsonify({
-                    "message": message
-                })
+                if isinstance(user_id, str):
+                    # User id does not exist so payload is an error message
+                    message = user_id
+                    response = jsonify({
+                        "message": message
+                    })
 
-                response.status_code = 401
-                return response
+                    response.status_code = 401
+                    return response
 
+                else:
+                    return func(user_id=user_id, *args, **kwargs)
             else:
-                return func(user_id=user_id, *args, **kwargs)
+                response = {
+                    "message": "Register or log in to access this resource"
+                }
+                return make_response(jsonify(response)), 401
 
     return func_wrapper
